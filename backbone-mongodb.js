@@ -14,7 +14,7 @@
   var MongoDBDocument;
   
   if (!Backbone && isServer) Backbone = require('backbone');
-  if (!_ && isServer) _ = require('underscore');
+  if (!_ && isServer) _ = require('underscore')._;
   
   var MongoDb = {};
 
@@ -47,10 +47,7 @@
   
   // Add mongoDB behavior to the Document
   if (isServer) {
-    /*
-    var MongoDBDocument = require('./lib/mongodb-document');
-    _.extend(MongoDb.models.Document.prototype, MongoDBDocument);
-    */
+    var MongoSync = require('./lib/mongodb-sync');
   }
   
   Backbone.MongoDb = MongoDb;
