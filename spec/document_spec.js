@@ -1,4 +1,5 @@
 var assert = require('assert'), 
+    events = require('events'),
     vows = require('vows'),
     helper = require('./helper'),
     BackboneMongoDb = require('../backbone-mongodb'),
@@ -32,28 +33,36 @@ vows.describe('Document').addBatch({
     },
     'when saved': {
       topic: function(document) {
-        document.save(null, this.callback);
+        document.save(null, {error: this.callback, success: this.callback});
       },
-      'is not new': function(err, document) {
-        assert.isFalse(document.isNew());
+      'is not new': function(result, document) {
+        assert.isFalse(result.isNew());
       },      
-      'has assigned the id': function(err, document) {
-        assert.ok(document.id);
+      'has assigned the id': function(result, document) {
+        assert.ok(result.id);
       },
     },
     'when updated inside save': {
       topic: function(document) {
-        document.save({spaceMonkeyCaptain: true}, this.callback);
+        var promise = new(events.EventEmitter);
+
+        document.save({spaceMonkeyCaptain: true}, {
+          error: function(err) {promise.emit('error', err)}, 
+          success: function(data){promise.emit('success', data)}
+        });
       },
       'has parameter saved': function(err, document) {
-        assert.isNull(err);
+        console.log(document);
         assert.isTrue(document.get('spaceMonkeyCaptain'));
       }
-    },
+    }
+  }
+}).export(module);
+/*,
     'when updated': {
       topic: function(document) {
         document.set({spaceMonkeyTrainee: true});
-        document.save({}, this.callback);
+        document.save(null, {error: this.callback, success: this.callback});
       },
       'has parameter saved': function(err, document) {
         assert.isNull(err);
@@ -69,7 +78,7 @@ vows.describe('Document').addBatch({
   'an existing document': {
     topic: function() {
       var document = new TestDocument();
-      document.save({spaceMonkeyCaptain: true}, this.callback);
+      document.save({spaceMonkeyCaptain: true}, {error: this.callback, success: this.callback});
     },
     'exists': function(document) {
       assert.isFalse(document.isNew());
@@ -79,7 +88,55 @@ vows.describe('Document').addBatch({
       topic: function(document) {
         var fetchedDocument = new TestDocument();
         fetchedDocument.id = document.id;
-        fetchedDocument.fetch(this.callback);
+        fetchedDocument.fetch({error: this.callback, success: this.callback});
+      },
+      'is found': function(err, fetched) {
+        assert.isNull(err);
+        assert.ok(fetched);
+      },
+      'is populated': function(err, fetched) {
+        assert.isTrue(fetched.get('spaceMonkeyCaptain'));
+      }
+    },
+    'when updated inside save': {
+      topic: function(document) {
+        document.save({spaceMonkeyCaptain: true}, {error: this.callback, success: this.callback});
+      },
+      'has parameter saved': function(err, document) {
+        assert.isNull(err);
+        assert.isTrue(document.get('spaceMonkeyCaptain'));
+      }
+    },
+    'when updated': {
+      topic: function(document) {
+        document.set({spaceMonkeyTrainee: true});
+        document.save(null, this.callback);
+      },
+      'has parameter saved': function(err, document) {
+        assert.isNull(err);
+        assert.isTrue(document.get('spaceMonkeyTrainee'));
+      }
+    }
+  }
+  
+// Fetching documents
+// ------------------
+
+}).addBatch({
+  'an existing document': {
+    topic: function() {
+      var document = new TestDocument();
+      document.save({spaceMonkeyCaptain: true}, {error: this.callback, success: this.callback});
+    },
+    'exists': function(document) {
+      assert.isFalse(document.isNew());
+      assert.isTrue(document.get('spaceMonkeyCaptain'));
+    },
+    'when fetched': {
+      topic: function(document) {
+        var fetchedDocument = new TestDocument();
+        fetchedDocument.id = document.id;
+        fetchedDocument.fetch({error: this.callback, success: this.callback});
       },
       'is found': function(err, fetched) {
         assert.isNull(err);
@@ -98,14 +155,14 @@ vows.describe('Document').addBatch({
   'an existing document': {
     topic: function() {
       var document = new TestDocument();
-      document.save({}, this.callback);
+      document.save(null, {error: this.callback, success: this.callback});
     },
     'exists': function(document) {
       assert.isFalse(document.isNew());
     },
     'when deleted': {
       topic: function(document) {
-        document.destroy(this.callback);
+        document.destroy({error: this.callback, success: this.callback});
       },
       'succeeds': function(err) {
         // without 'safe' mode the return is undefined
@@ -113,7 +170,7 @@ vows.describe('Document').addBatch({
       },
       'cannot be fetched': {
         topic: function(document) {
-          document.fetch(this.callback);
+          document.fetch({error: this.callback, success: this.callback});
         },
         'fail': function(err, document) {
           assert.ok(err);
@@ -122,4 +179,4 @@ vows.describe('Document').addBatch({
     }
   }
   
-}).export(module);
+})*/
