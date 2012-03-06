@@ -13,6 +13,11 @@
     "mongodb": "0.9.x",
     "asyncblock": "2.0.x"
   },
+  "devDependencies": {
+    "sinon": "1.3.x",
+    "mocha": "0.12.x",    
+    "chai": "0.4.x"
+  },
   "directories": {
     "lib": "./lib"
   },
