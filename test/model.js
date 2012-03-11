@@ -1,6 +1,6 @@
 var Db = require('../lib/db'),
   should = require('chai').should(),
-  asyncblock = require('asyncblock'),
+  async = require('async'),
   Backbone = require('backbone'),
   _ = require('underscore')._,
   Sync = require('../lib/mongodb-sync'),
@@ -51,7 +51,7 @@ describe('Model', function(){
       it('propagates changes to the attribute', function(done){
         var myModel = new MyModel({submodel: {key: 'value'}});
         myModel.submodel.set({key: 'newvalue'});
-        _.isEqual(myModel.get('submodel'), {key: 'newvalue'}).should.be.true;
+        myModel.get('submodel').key.should.equal('newvalue');
         done();
       });
     });
@@ -71,19 +71,13 @@ describe('Model', function(){
         }});
       });
       it('is created', function(done){
-        // TODO: lehet, hogy nem talált semmit
-        var myModel;
-        asyncblock(function(flow){
-          myModel = new MyModel({submodel: savedModel.id},
-                                    {flow: flow.add()});
-          console.log(flow.wait());
-        });
-        // initialize finishes later than this one
-        console.log('itt');
-        should.exist(myModel.submodel);
-        console.log('itt');
-        myModel.submodel.id.should.be.equal(savedModel.id);
-        done();
+        async.waterfall([function(callback){new MyModel({key: 'value2', submodel: savedModel.id}, {callback: callback});}],
+          function(err, myModel){
+            should.exist(myModel.submodel);
+            myModel.submodel.id.should.be.equal(savedModel.id);
+            done();
+          }
+        );
       });
       it('it listens to changes in the attribute', function(done){
         var myModel = new MyModel({submodel: savedModel.id});
@@ -96,13 +90,6 @@ describe('Model', function(){
       });
     });
     describe('json collection', function(){
-      before(function(done){
-        MyModel = MyModel.extend({
-          nested : {
-            submodel: MyCollection
-          }
-        });
-      });
       it('is created', function(done){
         var myModel = new MyModel({submodel: [{key: 'value'}]});
         // initialize finishes later than this one
@@ -112,7 +99,6 @@ describe('Model', function(){
         done();
       });
       it('propagate changes from attributes', function(done){
-
       });
       it('propagate changes from the collection', function(done){
       });
