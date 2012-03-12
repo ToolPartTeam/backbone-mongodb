@@ -103,29 +103,34 @@ can be performed on the collection.
 
 ## Model extensions
 
-### nestAs attribute
+### nested and embedded attribute
 
-Using the `nestAs` attribute four types of nesting are possible. One can nest:
+Using the `nested` and `embedded` attributes four types of nesting are possible. One can nest:
 
-  1. another model from a JSON argument
-  2. another collection from JSON array as an argument
-  3. another model from model & ID as an argument
-  4. another collection from list of IDs as an argument
+  1. another model from a JSON argument (embed)
+  2. another collection from JSON array as an argument (embed)
+  3. another model from model & ID as an argument (nest)
+  4. another collection from list of IDs as an argument (nest)
 
 Example:
 
     var MyModel = Backbone.Model.extend({
-          nestAs: {
+          embedded: {
             case1: MyModel,
             case2: MyCollection,
+          },
+          nestAs: {
             case3: MyCollection,
             case4: MyCollection
+          },
+          defaults: {
+            case4: []
           }
       }),
-        MyCollection = Backbone.Collection.extend({
+      MyCollection = Backbone.Collection.extend({
           model: MyModel
       });
-    var myModel = new MyModel({subdata: 'subvalue'});
+    var newModel = new MyModel({subdata: 'subvalue'});
     myModel.save(null, {success: function(newModel){
         var mainModel = new MyModel({
             case1: {subdata: 'subvalue'},
@@ -151,7 +156,7 @@ in values in both directions as much as possible.
 
 # TODO
 
-1. There is a known bug with case2 and case4 as the initializer function's async calls are not finished before the Model instance is already returned. 
+* add support for save method bubbling
 
 # Credit
 

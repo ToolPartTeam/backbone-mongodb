@@ -103,14 +103,28 @@ describe('Model', function(){
         );
       });
       it('propagate changes from attributes', function(done){
-        async.waterfall([function(callback){new MyModel({subcollection: []}, {callback: callback});}],
-          function(err, myModel){
-            myModel.set({subcollection: [savedModel.id]});
-            // TODO: write w/ asyncblock to ensure that callbacks are called
+        async.waterfall([
+          function(callback){new MyModel({key: 'value2', subcollection: savedModel.id}, {callback: callback});},
+          function(myModel, callback){
+            new MyModel({key: 'value2'}, {
+              callback: function(err, model2) { callback(err, myModel, model2); }
+            });
+          },
+          function(myModel, model2, callback){
+            model2.save(null, {
+              success: function(model2){
+                callback(null, myModel, model2);
+              },
+              error: callback
+            });
+          }
+        ],
+          function(err, myModel, model2) {
+            myModel.set({subcollection: model2.id});
+            // TODO: async-kal ezt is tesztelni
             assert(_.isEqual(myModel.get('subcollection'), myModel.subcollection.toJSON()));
             done();
-          }
-        );
+        });
       });
       it('propagate changes from the collection', function(done){
         async.waterfall([function(callback){new MyModel({subcollection: []}, {callback: callback});}],
