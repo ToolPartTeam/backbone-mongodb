@@ -4,6 +4,7 @@
 
 
 var Db = require('../lib/db'),
+  assert = require('assert'),
   should = require('should'),
   async = require('async'),
   Backbone = require('backbone'),
@@ -40,6 +41,24 @@ describe('Model', function(){
         }
       });
     });
+    describe('with empty embed', function(){
+      it('creates the attribute', function(done){
+        var myModel = new MyModel({});
+        should.exist(myModel.submodel);
+        done();
+      });
+      it('re-populates the attribute on change of the original', function(){
+        var myModel = new MyModel({});
+        myModel.set({submodel: {key: "value"}});
+        should.exist(myModel.submodel);
+        myModel.submodel.get('key').should.be.equal('value');
+      });
+      it('re-populates the original on change of the embedded', function(){
+        var myModel = new MyModel({});
+        myModel.submodel.set({key: "newvalue"});
+        myModel.get('submodel').key.should.be.equal('newvalue');
+      });
+    });
     it('the attribute is created', function(done){
       var myModel = new MyModel({submodel: {key: 'value'}});
       should.exist(myModel.submodel);
@@ -64,7 +83,28 @@ describe('Model', function(){
       MyModel = MyModel.extend({
         embedded: {
           subcollection: MyCollection
+        },
+        defaults: {
+          subcollection: []
         }
+      });
+    });
+    describe('with empty embed', function(){
+      it('creates the attribute', function(){
+        var myModel = new MyModel({});
+        should.exist(myModel.subcollection);
+        myModel.subcollection.length.should.equal(0);
+      });
+      it('re-populates the attribute on change of the original', function(){
+        var myModel = new MyModel({});
+        myModel.set({subcollection: [{key: "value"}]});
+        should.exist(myModel.subcollection);
+        myModel.subcollection.length.should.equal(1);
+      });
+      it('re-populates the original on change of the embedded', function(){
+        var myModel = new MyModel({});
+        myModel.subcollection.add({key: "newvalue"});
+        assert(_.isEqual(myModel.get('subcollection'), myModel.subcollection.toJSON()));
       });
     });
     it('the attribute is created', function(done){
