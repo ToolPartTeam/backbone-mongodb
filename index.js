@@ -11,3 +11,15 @@ module.exports = function(app, path){
 };
 module.exports.Db = require('./lib/db');
 
+// A simple helper function to wrap a node styl callback
+// into a backbone styl callback json
+// @param callback: a node style callback accepting `err, result` arguments
+// @returns. {success: .., error: ..} json object
+module.exports.wrap_callback = function(callback){
+  return {
+    success: function(model) { callback(null, model);},
+    error: function(error) {callback(error);}
+    };
+};
+
+
